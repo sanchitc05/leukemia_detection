@@ -1,0 +1,78 @@
+# Leukemia Detection Configuration
+
+# Data Configuration
+data:
+  dataset_path: "data/raw/ALL_IDB1/"
+  processed_path: "data/processed/"
+  augmented_path: "data/augmented/"
+  image_size: [224, 224]
+  batch_size: 32
+  validation_split: 0.2
+  test_split: 0.1
+  random_seed: 42
+
+# Model Configuration
+model:
+  architecture: "efficientnet_b0"
+  pretrained_weights: "imagenet"
+  input_shape: [224, 224, 3]
+  num_classes: 2
+  dropout_rate: 0.3
+  fine_tune_layers: 50  # Number of layers to unfreeze for fine-tuning
+  
+# Training Configuration
+training:
+  epochs: 100
+  initial_learning_rate: 0.001
+  fine_tune_learning_rate: 0.0001
+  early_stopping_patience: 15
+  reduce_lr_patience: 10
+  reduce_lr_factor: 0.5
+  optimizer: "adam"
+  loss_function: "binary_crossentropy"
+  metrics: ["accuracy", "precision", "recall", "auc"]
+  
+# Data Augmentation Configuration
+augmentation:
+  rotation_range: 20
+  width_shift_range: 0.1
+  height_shift_range: 0.1
+  shear_range: 0.2
+  zoom_range: 0.2
+  horizontal_flip: true
+  vertical_flip: false
+  brightness_range: [0.8, 1.2]
+  contrast_range: [0.8, 1.2]
+  saturation_range: [0.8, 1.2]
+  
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "roc_auc"
+    - "confusion_matrix"
+  threshold: 0.5
+  
+# Paths Configuration
+paths:
+  model_save_path: "models/saved_models/"
+  checkpoint_path: "models/checkpoints/"
+  export_path: "models/exports/"
+  results_path: "results/"
+  logs_path: "results/logs/"
+  plots_path: "results/plots/"
+  
+# Inference Configuration
+inference:
+  model_format: "saved_model"  # Options: "saved_model", "h5"
+  confidence_threshold: 0.5
+  batch_inference: true
+  
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "results/logs/training.log"

@@ -1,6 +1,7 @@
 import os
 import logging
 from src.model_config import ModelConfig
+<<<<<<< HEAD
 
 # Explicitly pass the correct path to config.yaml
 config = ModelConfig(config_path="config.yaml")
@@ -9,6 +10,19 @@ from src.data_preprocessing import prepare_data, augment_data
 from src.model_architecture import build_custom_cnn, build_transfer_model
 import training
 import evaluation
+=======
+from src.utils import set_random_seed, configure_logging, create_dirs
+from src.data_preprocessing import prepare_data, augment_data
+from src.model_architecture import build_custom_cnn, build_transfer_model
+import src.training
+import src.evaluation
+from src.evaluation import plot_training_history, plot_confusion_matrix
+from src.utils import save_metrics, save_model_history
+from src.model_config import ModelConfig
+
+# Explicitly pass the correct path to config.yaml
+config = ModelConfig(config_path="config.yaml")
+>>>>>>> e211ebe (commit)
 
 def main():
     """

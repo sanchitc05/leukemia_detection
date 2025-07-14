@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+=======
+Here’s a comprehensive `README.md` for your **Leukemia Detection Project**, structured for clarity and professionalism. It includes all the key sections necessary for users, collaborators, or recruiters to understand and run the project.
+
+---
+
+### ✅ `README.md`
+
+```markdown
+>>>>>>> e211ebe (commit)
 # 🧬 Leukemia Detection using Deep Learning
 
 This project focuses on detecting leukemia from microscopic blood smear images using deep learning, combining custom CNNs and transfer learning techniques with robust evaluation and modular configuration.
@@ -59,7 +69,11 @@ leukemia\_detection/
 ### 1. 🔧 Setup Environment
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/sanchitc05/leukemia-detection.git
+=======
+git clone https://github.com/your-username/leukemia-detection.git
+>>>>>>> e211ebe (commit)
 cd leukemia_detection
 
 # Create virtual environment

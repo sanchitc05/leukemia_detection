@@ -1,9 +1,12 @@
 import os
 import logging
 from src.model_config import ModelConfig
-from utils import set_random_seed, configure_logging, create_dirs
-from data_preprocessing import prepare_data, augment_data
-from model_architecture import build_custom_cnn, build_transfer_model
+
+# Explicitly pass the correct path to config.yaml
+config = ModelConfig(config_path="config.yaml")
+from src.utils import set_random_seed, configure_logging, create_dirs
+from src.data_preprocessing import prepare_data, augment_data
+from src.model_architecture import build_custom_cnn, build_transfer_model
 import training
 import evaluation
 

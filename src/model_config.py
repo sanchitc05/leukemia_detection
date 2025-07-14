@@ -6,22 +6,37 @@ Parses the YAML file and exposes configuration sections.
 import yaml
 from pathlib import Path
 from typing import Any, Dict
+import os
+import logging
 
+# Ensure the YAML file is in the same directory as this script
+CONFIG_FILE = Path(__file__).parent / "config.yaml"
+from pathlib import Path
+import yaml
 
 class ModelConfig:
-    """Configuration class to load and manage config.yaml settings."""
+    """Configuration class for model parameters."""
 
-    def __init__(self, config_path: str = None):
+    def __init__(self, config_path=None):
         if config_path is None:
-            config_path = Path(__file__).parent / "config.yaml"
+            # Try to find config.yaml in root or src/
+            possible_paths = [
+                Path(__file__).parent.parent / "config.yaml",  # root/config.yaml
+                Path(__file__).parent / "config.yaml",         # src/config.yaml
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    config_path = path
+                    break
+            else:
+                raise FileNotFoundError("Configuration file not found in expected locations.")
         else:
             config_path = Path(config_path)
-
-        if not config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-        with open(config_path, "r") as f:
-            self.config = yaml.safe_load(f)
+            if not config_path.exists():
+                raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        with open(config_path, 'r') as file:
+            self.config = yaml.safe_load(file)
 
     @property
     def data(self) -> Dict[str, Any]:

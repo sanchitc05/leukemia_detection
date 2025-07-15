@@ -15,7 +15,7 @@ from src.utils import (
     save_model_history, plot_training_history, calculate_metrics,
     save_metrics, display_sample_images, validate_data_structure
 )
-from src.data_preprocessing import DataLoader
+from src.data_loader import DataLoader
 
 # Step 1: Setup
 config = ModelConfig()
@@ -40,7 +40,13 @@ tensorboard_logs = os.path.join(experiment_dir, "logs")
 
 # Step 4: Load Data
 logger.info("Loading and preprocessing dataset...")
-data_loader = DataLoader(config)
+data_params = config.get_data_params()
+data_loader = DataLoader(
+    dataset_path=data_params["dataset_path"],
+    processed_path=data_params["processed_path"],
+    image_size=tuple(data_params["image_size"]),
+    seed=data_params["random_seed"]
+)
 train_ds, val_ds, test_ds, class_names, y_test = data_loader.load_datasets()
 logger.info(f"Train size: {len(train_ds)}, Val size: {len(val_ds)}, Test size: {len(test_ds)}")
 

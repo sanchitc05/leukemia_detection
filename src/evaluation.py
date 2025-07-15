@@ -8,14 +8,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 
-from config.model_config import ModelConfig
-from utils import (
+from .model_config import ModelConfig
+from .utils import (
     load_model_history,
     plot_training_history,
     plot_confusion_matrix,
     calculate_metrics,
     save_metrics,
 )
+
 
 # Load config
 config = ModelConfig()

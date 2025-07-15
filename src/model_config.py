@@ -1,132 +1,89 @@
-import yaml
-from pathlib import Path
-from typing import Any, Dict
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import Rescaling
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+import json
 
-class ModelConfig:
-    """Configuration class to load and manage config.yaml settings."""
+from config.model_config import ModelConfig
+from utils import (
+    load_model_history,
+    plot_training_history,
+    plot_confusion_matrix,
+    calculate_metrics,
+    save_metrics,
+)
 
-    def __init__(self, config_path: str = None):
-        if config_path is None:
-            config_path = Path(__file__).parent / "config.yaml"
-        else:
-            config_path = Path(config_path)
+# ----------------------------
+# Load Configuration
+# ----------------------------
+config = ModelConfig()
+model_params = config.get_model_params()
+data_params = config.get_data_params()
+paths = config.paths              # ✅ Corrected
+eval_config = config.evaluation   # ✅ Corrected
 
-        if not config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+def evaluate_model():
+    """
+    Evaluate the trained leukemia detection model on the test dataset.
+    """
+    num_classes = model_params['num_classes']
+    image_size = tuple(data_params['image_size'])
+    batch_size = data_params['batch_size']
+    threshold = eval_config.get('threshold', 0.5)
 
-        with open(config_path, "r") as f:
-            self.config = yaml.safe_load(f)
+    # Load test dataset
+    test_dir = os.path.join(data_params['processed_path'], 'test')
+    test_ds = tf.keras.preprocessing.image_dataset_from_directory(
+        test_dir,
+        image_size=image_size,
+        batch_size=batch_size,
+        shuffle=False
+    )
 
-    @property
-    def data(self) -> Dict[str, Any]:
-        return self.config.get("data", {})
+    class_names = test_ds.class_names
+    print(f"Class names: {class_names}")
 
-    @property
-    def model(self) -> Dict[str, Any]:
-        return self.config.get("model", {})
+    # Normalize test images
+    normalization_layer = Rescaling(1. / 255)
+    test_ds = test_ds.map(lambda x, y: (normalization_layer(x), y))
 
-    @property
-    def training(self) -> Dict[str, Any]:
-        return self.config.get("training", {})
+    # Load trained model
+    model_path = os.path.join(paths['model_save_path'], "best_model")
+    model = load_model(model_path)
 
-    @property
-    def augmentation(self) -> Dict[str, Any]:
-        return self.config.get("augmentation", {})
+    # Predict probabilities
+    y_true = np.concatenate([y.numpy() for _, y in test_ds])
+    y_pred_proba = model.predict(test_ds)
 
-    @property
-    def evaluation(self) -> Dict[str, Any]:
-        return self.config.get("evaluation", {})
+    # Convert probabilities to class predictions
+    if num_classes == 2:
+        y_pred = (y_pred_proba > threshold).astype(int).flatten()
+    else:
+        y_pred = np.argmax(y_pred_proba, axis=1)
 
-    @property
-    def paths(self) -> Dict[str, Any]:
-        return self.config.get("paths", {})
+    # Compute evaluation metrics
+    metrics = calculate_metrics(y_true, y_pred, y_pred_proba if num_classes == 2 else None)
 
-    @property
-    def inference(self) -> Dict[str, Any]:
-        return self.config.get("inference", {})
+    # Save metrics to JSON
+    metrics_save_path = os.path.join(paths['results_path'], "evaluation_metrics.json")
+    save_metrics(metrics, metrics_save_path)
 
-    @property
-    def logging(self) -> Dict[str, Any]:
-        return self.config.get("logging", {})
+    # Confusion matrix
+    cm_plot_path = os.path.join(paths['plots_path'], "confusion_matrix.png")
+    plot_confusion_matrix(y_true, y_pred, class_names, save_path=cm_plot_path)
 
-    def get_model_params(self) -> Dict[str, Any]:
-        model_cfg = self.model
-        return {
-            "architecture": model_cfg.get("architecture"),
-            "input_shape": tuple(model_cfg.get("input_shape", [224, 224, 3])),
-            "num_classes": model_cfg.get("num_classes", 2),
-            "dropout_rate": model_cfg.get("dropout_rate", 0.3),
-            "pretrained_weights": model_cfg.get("pretrained_weights", None),
-            "fine_tune_layers": model_cfg.get("fine_tune_layers", 0),
-        }
+    print("✅ Evaluation complete. Metrics and plots saved.")
 
-    def get_training_params(self) -> Dict[str, Any]:
-        train_cfg = self.training
-        return {
-            "epochs": train_cfg.get("epochs", 50),
-            "initial_learning_rate": train_cfg.get("initial_learning_rate", 0.001),
-            "fine_tune_learning_rate": train_cfg.get("fine_tune_learning_rate", 0.0001),
-            "early_stopping_patience": train_cfg.get("early_stopping_patience", 10),
-            "reduce_lr_patience": train_cfg.get("reduce_lr_patience", 5),
-            "reduce_lr_factor": train_cfg.get("reduce_lr_factor", 0.5),
-            "optimizer": train_cfg.get("optimizer", "adam"),
-            "loss_function": train_cfg.get("loss_function", "binary_crossentropy"),
-            "metrics": train_cfg.get("metrics", ["accuracy"]),
-        }
+    # Optionally plot training history
+    history_path = os.path.join(paths['results_path'], "history.json")
+    if os.path.exists(history_path):
+        history = load_model_history(history_path)
+        plot_training_history(history, save_path=os.path.join(paths['plots_path'], "training_history.png"))
 
-    def get_data_params(self) -> Dict[str, Any]:
-        data_cfg = self.data
-        return {
-            "dataset_path": data_cfg.get("dataset_path"),
-            "processed_path": data_cfg.get("processed_path"),
-            "image_size": tuple(data_cfg.get("image_size", [224, 224])),
-            "batch_size": data_cfg.get("batch_size", 32),
-            "validation_split": data_cfg.get("validation_split", 0.2),
-            "test_split": data_cfg.get("test_split", 0.1),
-            "random_seed": data_cfg.get("random_seed", 42),
-        }
-
-    def create_directories(self):
-        """Create all necessary directories from config."""
-        paths = self.paths
-        data_path = self.data.get('processed_path')
-
-        directories = [
-            paths.get("model_save_path"),
-            paths.get("checkpoint_path"),
-            paths.get("export_path"),
-            paths.get("results_path"),
-            paths.get("logs_path"),
-            paths.get("plots_path"),
-            f"{data_path}/train/healthy/",
-            f"{data_path}/train/leukemia/",
-            f"{data_path}/validation/healthy/",
-            f"{data_path}/validation/leukemia/",
-            f"{data_path}/test/healthy/",
-            f"{data_path}/test/leukemia/",
-        ]
-
-        for path in directories:
-            if path:
-                Path(path).mkdir(parents=True, exist_ok=True)
-
-    def update(self, section: str, key: str, value: Any):
-        """Update a specific configuration value."""
-        if section in self.config and key in self.config[section]:
-            self.config[section][key] = value
-        else:
-            raise KeyError(f"Section '{section}' or key '{key}' not found in config.")
-
-    def save(self, save_path: str = None):
-        """Save the updated config back to file."""
-        if save_path is None:
-            save_path = Path(__file__).parent / "config.yaml"
-        else:
-            save_path = Path(save_path)
-
-        with open(save_path, "w") as f:
-            yaml.safe_dump(self.config, f, default_flow_style=False)
-
-
-# Optional global instance for convenience
-#config = ModelConfig()
+# Run evaluation
+if __name__ == "__main__":
+    evaluate_model()

@@ -1,7 +1,8 @@
 import os
 import logging
 from src.model_config import ModelConfig
-<<<<<<< HEAD
+# Import necessary modules for the Leukemia Detection project
+# This script serves as the main entry point for the project, orchestrating the entire pipeline.
 
 # Explicitly pass the correct path to config.yaml
 config = ModelConfig(config_path="config.yaml")
@@ -10,7 +11,6 @@ from src.data_preprocessing import prepare_data, augment_data
 from src.model_architecture import build_custom_cnn, build_transfer_model
 import training
 import evaluation
-=======
 from src.utils import set_random_seed, configure_logging, create_dirs
 from src.data_preprocessing import prepare_data, augment_data
 from src.model_architecture import build_custom_cnn, build_transfer_model
@@ -22,7 +22,6 @@ from src.model_config import ModelConfig
 
 # Explicitly pass the correct path to config.yaml
 config = ModelConfig(config_path="config.yaml")
->>>>>>> e211ebe (commit)
 
 def main():
     """

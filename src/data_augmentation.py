@@ -16,8 +16,7 @@ class DataAugmentor:
         the augmentation pipeline dynamically.
         """
         self.config = ModelConfig()
-        self.augmentation_config = getattr(self.config, 'augmentation', None)
-        # Build the augmentation pipeline on initialization
+        self.augmentation_config = getattr(self.config, 'augmentation_config', None)
         self._pipeline = self._build_pipeline()
 
     def _build_pipeline(self) -> tf.keras.Sequential:
@@ -34,11 +33,10 @@ class DataAugmentor:
             return tf.keras.Sequential(layers)
 
         # Random Flip
-        flip_cfg = getattr(self.augmentation_config, 'random_flip', None)
+        flip_cfg = self.augmentation_config.get('random_flip')
         if flip_cfg:
-            # Determine mode for RandomFlip based on config (horizontal, vertical, or both)
-            horizontal = getattr(flip_cfg, 'horizontal', False) or False
-            vertical = getattr(flip_cfg, 'vertical', False) or False
+            horizontal = flip_cfg.get('horizontal', False)
+            vertical = flip_cfg.get('vertical', False)
             if horizontal and vertical:
                 mode = "horizontal_and_vertical"
             elif horizontal:
@@ -51,61 +49,62 @@ class DataAugmentor:
                 layers.append(tf.keras.layers.RandomFlip(mode=mode))
 
         # Random Rotation
-        rot_cfg = getattr(self.augmentation_config, 'random_rotation', None)
+        rot_cfg = self.augmentation_config.get('random_rotation')
         if rot_cfg:
-            # Expect factor or list/tuple for rotation range
-            factor = getattr(rot_cfg, 'factor', None)
+            factor = rot_cfg.get('factor', None)
             if factor:
                 layers.append(tf.keras.layers.RandomRotation(factor=factor))
 
         # Random Zoom
-        zoom_cfg = getattr(self.augmentation_config, 'random_zoom', None)
+        zoom_cfg = self.augmentation_config.get('random_zoom')
         if zoom_cfg:
-            # Height and width zoom factors
-            height_factor = getattr(zoom_cfg, 'height_factor', 0.0) or 0.0
-            width_factor = getattr(zoom_cfg, 'width_factor', 0.0) or 0.0
+            height_factor = zoom_cfg.get('height_factor', 0.0)
+            width_factor = zoom_cfg.get('width_factor', 0.0)
             if height_factor or width_factor:
                 layers.append(tf.keras.layers.RandomZoom(
                     height_factor=height_factor,
                     width_factor=width_factor
                 ))
 
-        # Random Translation (Shift)
-        trans_cfg = getattr(self.augmentation_config, 'random_translation', None)
+        # Random Translation
+        trans_cfg = self.augmentation_config.get('random_translation')
         if trans_cfg:
-            # Height and width shift factors
-            height_factor = getattr(trans_cfg, 'height_factor', 0.0) or 0.0
-            width_factor = getattr(trans_cfg, 'width_factor', 0.0) or 0.0
+            height_factor = trans_cfg.get('height_factor', 0.0)
+            width_factor = trans_cfg.get('width_factor', 0.0)
             if height_factor or width_factor:
                 layers.append(tf.keras.layers.RandomTranslation(
                     height_factor=height_factor,
                     width_factor=width_factor
                 ))
 
-        # Random Brightness
-        bright_cfg = getattr(self.augmentation_config, 'random_brightness', None)
+        # Random Brightness (custom implementation via Lambda if needed)
+        bright_cfg = self.augmentation_config.get('random_brightness')
         if bright_cfg:
-            factor = getattr(bright_cfg, 'factor', None)
+            factor = bright_cfg.get('factor', 0.0)
             if factor:
-                layers.append(tf.keras.layers.RandomBrightness(factor=factor))
+                layers.append(tf.keras.layers.Lambda(
+                    lambda x: tf.image.random_brightness(x, max_delta=factor)
+                ))
 
         # Random Contrast
-        contrast_cfg = getattr(self.augmentation_config, 'random_contrast', None)
+        contrast_cfg = self.augmentation_config.get('random_contrast')
         if contrast_cfg:
-            factor = getattr(contrast_cfg, 'factor', None)
+            factor = contrast_cfg.get('factor', None)
             if factor:
                 layers.append(tf.keras.layers.RandomContrast(factor=factor))
 
         return tf.keras.Sequential(layers)
-
-    def get_augmentation_pipeline(self) -> tf.keras.Sequential:
+    # ---------------------------------------------
+# Exportable function for convenient importing
+# ---------------------------------------------
+    def get_augmentation_pipeline() -> tf.keras.Sequential:
         """
-        Get the TensorFlow augmentation pipeline built from configuration.
+        Convenience function to get the augmentation pipeline.
 
-        Returns:
-            tf.keras.Sequential: A model/layer sequence applying all configured augmentations.
+         Returns:
+        tf.keras.Sequential: Augmentation pipeline from config.
         """
-        return self._pipeline
+        return DataAugmentor().get_augmentation_pipeline()
 
     def apply(self, image: Tensor) -> Tensor:
         """
@@ -117,5 +116,7 @@ class DataAugmentor:
         Returns:
             tf.Tensor: Augmented image tensor.
         """
-        # Ensure the pipeline is in training mode to apply random augmentations
         return self._pipeline(image, training=True)
+
+
+

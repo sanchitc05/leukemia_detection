@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> e211ebe (commit)
 """
 Model architecture module for Leukemia Detection project.
 Contains CNN model definitions and transfer learning implementations.

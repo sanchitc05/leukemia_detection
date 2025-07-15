@@ -6,7 +6,6 @@ Parses the YAML file and exposes configuration sections.
 import yaml
 from pathlib import Path
 from typing import Any, Dict
-<<<<<<< HEAD
 import os
 import logging
 
@@ -38,9 +37,6 @@ class ModelConfig:
         
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
-=======
-
-
 class ModelConfig:
     """Configuration class to load and manage config.yaml settings."""
 
@@ -55,41 +51,39 @@ class ModelConfig:
 
         with open(config_path, "r") as f:
             self.config = yaml.safe_load(f)
->>>>>>> e211ebe (commit)
-
-    @property
-    def data(self) -> Dict[str, Any]:
+@property
+def data(self) -> Dict[str, Any]:
         return self.config.get("data", {})
 
-    @property
-    def model(self) -> Dict[str, Any]:
+@property
+def model(self) -> Dict[str, Any]:
         return self.config.get("model", {})
 
-    @property
-    def training(self) -> Dict[str, Any]:
+@property
+def training(self) -> Dict[str, Any]:
         return self.config.get("training", {})
 
-    @property
-    def augmentation(self) -> Dict[str, Any]:
+@property
+def augmentation(self) -> Dict[str, Any]:
         return self.config.get("augmentation", {})
 
-    @property
-    def evaluation(self) -> Dict[str, Any]:
+@property
+def evaluation(self) -> Dict[str, Any]:
         return self.config.get("evaluation", {})
 
-    @property
-    def paths(self) -> Dict[str, Any]:
+@property
+def paths(self) -> Dict[str, Any]:
         return self.config.get("paths", {})
 
-    @property
-    def inference(self) -> Dict[str, Any]:
+@property
+def inference(self) -> Dict[str, Any]:
         return self.config.get("inference", {})
 
-    @property
-    def logging(self) -> Dict[str, Any]:
+@property
+def logging(self) -> Dict[str, Any]:
         return self.config.get("logging", {})
 
-    def get_model_params(self) -> Dict[str, Any]:
+def get_model_params(self) -> Dict[str, Any]:
         model_cfg = self.model
         return {
             "architecture": model_cfg.get("architecture"),
@@ -100,7 +94,7 @@ class ModelConfig:
             "fine_tune_layers": model_cfg.get("fine_tune_layers", 0),
         }
 
-    def get_training_params(self) -> Dict[str, Any]:
+def get_training_params(self) -> Dict[str, Any]:
         train_cfg = self.training
         return {
             "epochs": train_cfg.get("epochs", 50),
@@ -114,7 +108,7 @@ class ModelConfig:
             "metrics": train_cfg.get("metrics", ["accuracy"]),
         }
 
-    def get_data_params(self) -> Dict[str, Any]:
+def get_data_params(self) -> Dict[str, Any]:
         data_cfg = self.data
         return {
             "dataset_path": data_cfg.get("dataset_path"),
@@ -126,7 +120,7 @@ class ModelConfig:
             "random_seed": data_cfg.get("random_seed", 42),
         }
 
-    def create_directories(self):
+def create_directories(self):
         """Create all necessary directories from config."""
         from pathlib import Path
 
@@ -150,14 +144,14 @@ class ModelConfig:
             if path:
                 Path(path).mkdir(parents=True, exist_ok=True)
 
-    def update(self, section: str, key: str, value: Any):
+def update(self, section: str, key: str, value: Any):
         """Update a specific configuration value."""
         if section in self.config and key in self.config[section]:
             self.config[section][key] = value
         else:
             raise KeyError(f"Section '{section}' or key '{key}' not found in config.")
 
-    def save(self, save_path: str = None):
+def save(self, save_path: str = None):
         """Save the updated config back to file."""
         if save_path is None:
             save_path = Path(__file__).parent / "config.yaml"

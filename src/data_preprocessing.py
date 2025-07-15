@@ -453,11 +453,7 @@ def main():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    main()
-=======
     main()
 
 # This code is part of the Leukemia Detection project and is designed to preprocess data for training machine learning models.
-# It includes functionality for loading, organizing, and preprocessing images, as well as creating TensorFlow
->>>>>>> e211ebe (commit)
+# It includes functionality for loading, organizing, and preprocessing images, as well as creating TensorFlow datasets.

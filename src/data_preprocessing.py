@@ -111,43 +111,35 @@ class DataPreprocessor:
     
     def _load_image_paths_and_labels(self, source_path: str) -> Tuple[List[str], List[int]]:
         """
-        Load image paths and labels from source directory.
-        
+        Recursively load image paths and labels from source directory.
+
         Args:
             source_path: Path to source dataset
-            
+
         Returns:
             Tuple of (image_paths, labels)
         """
         image_paths = []
         labels = []
-        
+
+        valid_exts = ['.bmp', '.jpg', '.jpeg', '.png']
         source_dir = Path(source_path)
-        
-        # Look for image files in the source directory
-        for img_file in source_dir.glob('*.jpg'):
-            image_paths.append(str(img_file))
-            
-            # Determine label based on filename convention
-            # Assuming healthy images contain 'all' and leukemia images contain other patterns
-            filename = img_file.name.lower()
-            if 'all' in filename:
-                labels.append(1)  # Leukemia (ALL - Acute Lymphoblastic Leukemia)
-            else:
-                labels.append(0)  # Healthy
-        
-        # Also check for PNG files
-        for img_file in source_dir.glob('*.png'):
-            image_paths.append(str(img_file))
-            filename = img_file.name.lower()
-            if 'all' in filename:
-                labels.append(1)  # Leukemia
-            else:
-                labels.append(0)  # Healthy
-        
+
+        for file_path in source_dir.rglob('*'):
+            if file_path.suffix.lower() in valid_exts:
+                image_paths.append(str(file_path))
+
+                parent = file_path.parent.name.lower()
+                # You can customize this logic depending on your folder naming convention
+                if 'all' in parent:
+                    labels.append(1)  # Leukemia
+                else:
+                    labels.append(0)  # Healthy
+
         self.logger.info(f"Found {len(image_paths)} images")
         return image_paths, labels
-    
+
+
     def _copy_files_to_directories(self, paths: List[str], labels: List[int], 
                                   target_path: str, split_name: str):
         """Copy files to appropriate directories based on labels."""
@@ -329,7 +321,7 @@ class DataPreprocessor:
                         image.verify()  # Verify image integrity
                         
                         # Check image format
-                        if image.format not in ['JPEG', 'PNG', 'JPG']:
+                        if image.format not in ['JPEG', 'PNG', 'JPG', 'BMP']:
                             validation_results['format_issues'].append(str(img_file))
                         
                         # Check image size

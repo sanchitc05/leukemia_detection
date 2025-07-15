@@ -1,8 +1,5 @@
 """
 Init file for tests package.
 Used to mark the directory as a Python package and optionally initialize testing utilities.
-<<<<<<< HEAD
+This file can be empty or contain package-level docstrings or imports.
 """
-=======
-"""
->>>>>>> e211ebe (commit)

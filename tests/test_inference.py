@@ -54,10 +54,6 @@ class TestModelInference(unittest.TestCase):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     unittest.main()
 # This will run the unit tests when the script is executed directly
 # It is not necessary to include this in the module, as it is intended for testing purposes
-=======
-    unittest.main()
->>>>>>> e211ebe (commit)
